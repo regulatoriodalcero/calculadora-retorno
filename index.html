@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Calculadora rápida de payback do Programa Fábrica Blindada.">
+<style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}</style>
+</head>
+<body>
+<title>Payback Fábrica Blindada</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Layout: faixa azul-marinho com o nome, painel de entradas à esquerda e cards de resultado à direita; no celular, tudo em uma coluna. */
+:root {
+  --navy: #041F47; --azul: #003B91; --vivo: #0043D8; --ouro: #E8B461;
+  --bg: #F3F6FB; --sup: #FFFFFF; --sup2: #E9F0FB; --linha: #D3DCEA; --campo: #FFFFFF;
+  --tx: #0E1B33; --tx2: #4C5870; --foco: #0043D8;
+  --ok: #1B7445; --ok-bg: #E4F2E9; --warn: #8F5D00; --warn-bg: #FCEFC9; --no: #B2302A; --no-bg: #FBE3E0;
+  --sel: #041F47; --sel-tx: #FFFFFF;
+  --f-tit: "Sora", "Segoe UI", system-ui, sans-serif;
+  --f-txt: "Inter", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #07142B; --sup: #0E1F3D; --sup2: #132A52; --linha: #22385F; --campo: #0A1830;
+  --tx: #E6ECF7; --tx2: #9FB0CC; --foco: #8FC0FF;
+  --ok: #6FD3A0; --ok-bg: #12352A; --warn: #F2C14E; --warn-bg: #3A2E0F; --no: #FF8A80; --no-bg: #3D1B1A; --sel: #E8B461; --sel-tx: #041F47; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #07142B; --sup: #0E1F3D; --sup2: #132A52; --linha: #22385F; --campo: #0A1830;
+  --tx: #E6ECF7; --tx2: #9FB0CC; --foco: #8FC0FF;
+  --ok: #6FD3A0; --ok-bg: #12352A; --warn: #F2C14E; --warn-bg: #3A2E0F; --no: #FF8A80; --no-bg: #3D1B1A; --sel: #E8B461; --sel-tx: #041F47; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--tx); font: 16px/1.5 var(--f-txt); }
+input, button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+.dentro { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+.faixa { background: #041F47; color: #fff; border-bottom: 3px solid #003B91; }
+.faixa .dentro { padding-block: 26px 24px; }
+.olho { font: 600 12px var(--f-tit); letter-spacing: .14em; text-transform: uppercase; color: #E8B461; }
+h1 { font: 700 clamp(26px, 4.5vw, 38px)/1.1 var(--f-tit); letter-spacing: -.02em; margin: 6px 0 0; }
+
+main { padding-block: 24px 48px; display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 860px) { main { grid-template-columns: minmax(0, 1fr); } }
+
+.painel { background: var(--sup); border: 1px solid var(--linha); border-radius: 16px; padding: 20px; display: grid; gap: 16px; }
+.painel h2 { font: 600 13px var(--f-tit); letter-spacing: .1em; text-transform: uppercase; color: var(--tx2); margin: 0; }
+.campo { display: grid; gap: 6px; }
+.campo > label, .campo > span { font-size: 14px; font-weight: 600; color: var(--tx2); }
+.ent { display: flex; align-items: stretch; border: 1px solid var(--linha); border-radius: 10px; background: var(--campo); overflow: hidden; }
+.ent:focus-within { outline: 2px solid var(--foco); outline-offset: 1px; }
+.ent i { font-style: normal; display: grid; place-items: center; padding: 0 12px; background: var(--sup2); color: var(--tx2); font-size: 14px; font-weight: 600; white-space: nowrap; }
+.ent input { flex: 1; min-width: 0; width: 100%; border: 0; background: transparent; padding: 12px; outline: none; font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.seg { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--linha); border-radius: 10px; overflow: hidden; background: var(--campo); }
+.seg label { text-align: center; padding: 11px 10px; font-weight: 600; color: var(--tx2); cursor: pointer; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg label:has(input:checked) { background: var(--sel); color: var(--sel-tx); }
+.seg label:has(input:focus-visible) { outline: 2px solid var(--foco); outline-offset: -2px; }
+.limpar { justify-self: start; background: none; border: 0; padding: 0; color: var(--tx2); font-size: 14px; text-decoration: underline; cursor: pointer; }
+
+.res { display: grid; gap: 16px; min-width: 0; }
+.frase { background: #041F47; color: #fff; border-radius: 16px; padding: 20px 22px; font: 600 clamp(18px, 2.4vw, 23px)/1.4 var(--f-tit); letter-spacing: -.01em; text-wrap: balance; border-left: 6px solid #E8B461; }
+.frase.vazia { background: var(--sup); color: var(--tx2); border: 1px dashed var(--linha); border-left: 6px solid var(--linha); font-weight: 500; font-size: 17px; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 1040px) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 420px) { .cards { grid-template-columns: minmax(0, 1fr); } }
+.card { background: var(--sup); border: 1px solid var(--linha); border-radius: 16px; padding: 18px; display: grid; gap: 6px; align-content: start; min-width: 0; container-type: inline-size; }
+.card span { font: 600 12px var(--f-tit); letter-spacing: .08em; text-transform: uppercase; color: var(--tx2); }
+.card output { font: 700 30px/1.15 var(--f-tit); font-size: min(30px, 10.5cqi); letter-spacing: -.02em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.card small { color: var(--tx2); font-size: 13px; }
+.card.dest { border-color: #E8B461; box-shadow: inset 0 0 0 1px #E8B461; }
+.pil { justify-self: start; font-size: 12.5px; font-weight: 600; border-radius: 999px; padding: 3px 11px; }
+.pil:empty { display: none; }
+.pil.ok { background: var(--ok-bg); color: var(--ok); }
+.pil.warn { background: var(--warn-bg); color: var(--warn); }
+.pil.no { background: var(--no-bg); color: var(--no); }
+.nota { color: var(--tx2); font-size: 13px; margin: 0; }
+</style>
+
+<header class="faixa"><div class="dentro">
+  <div class="olho">Programa Fábrica Blindada</div>
+  <h1>Payback Fábrica Blindada</h1>
+</div></header>
+
+<main class="dentro">
+  <form class="painel" id="form" autocomplete="off" novalidate>
+    <h2>Dados da fábrica</h2>
+    <div class="campo"><span id="tipo-rot">Tipo de fábrica</span>
+      <div class="seg" role="radiogroup" aria-labelledby="tipo-rot">
+        <label><input type="radio" name="tipo" id="tipo-racao" value="Ração" checked>Ração</label>
+        <label><input type="radio" name="tipo" id="tipo-premix" value="Premix">Premix</label>
+      </div>
+    </div>
+    <div class="campo"><label for="prod">Produção mensal</label>
+      <div class="ent"><input id="prod" inputmode="decimal" placeholder="0"><i>t/mês</i></div></div>
+    <div class="campo"><label for="preco">Preço médio por tonelada</label>
+      <div class="ent"><i>R$</i><input id="preco" inputmode="decimal" placeholder="0,00"><i>/t</i></div></div>
+    <div class="campo"><label for="melhoria">Melhoria estimada</label>
+      <div class="ent"><input id="melhoria" inputmode="decimal" value="0,2"><i>% do faturamento</i></div></div>
+    <div class="campo"><label for="invest">Investimento anual</label>
+      <div class="ent"><i>R$</i><input id="invest" inputmode="decimal" value="80.000"><i>/ano</i></div></div>
+    <button type="button" class="limpar" id="limpar">Limpar e voltar aos valores padrão</button>
+  </form>
+
+  <section class="res" aria-live="polite">
+    <p class="frase vazia" id="frase">Informe a produção mensal e o preço médio por tonelada para calcular o payback.</p>
+    <div class="cards">
+      <div class="card"><span>Faturamento mensal</span><output id="o-fat">—</output><small id="o-tipo"></small></div>
+      <div class="card"><span>Benefício mensal</span><output id="o-bm">—</output></div>
+      <div class="card"><span>Benefício anual</span><output id="o-ba">—</output></div>
+      <div class="card dest"><span>Payback</span><output id="o-pay">—</output><b class="pil" id="p-pay"></b></div>
+      <div class="card"><span>Resultado líquido anual</span><output id="o-res">—</output></div>
+      <div class="card"><span>ROI anual</span><output id="o-roi">—</output><b class="pil" id="p-roi"></b></div>
+    </div>
+    <p class="nota">Estimativa de referência calculada com a melhoria informada. O resultado efetivo depende das oportunidades capturadas em cada fábrica.</p>
+  </section>
+</main>
+
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const nf = (d) => new Intl.NumberFormat('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d });
+  const brl = v => (v < 0 ? '−R$ ' : 'R$ ') + nf(2).format(Math.abs(v));
+  const n1 = v => nf(1).format(v);
+  function parse(s) {
+    s = String(s || '').trim().replace(/\s|R\$|%/g, '');
+    if (!s) return null;
+    if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.');
+    else if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, '');
+    const v = Number(s);
+    return isFinite(v) ? v : null;
+  }
+  const fmtCampo = { prod: v => new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 }).format(v), preco: v => nf(2).format(v), melhoria: v => new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 3 }).format(v), invest: v => new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 }).format(v) };
+
+  function calc() {
+    const prod = parse($('prod').value), preco = parse($('preco').value), mel = parse($('melhoria').value), inv = parse($('invest').value);
+    const tipo = document.querySelector('input[name="tipo"]:checked').value;
+    const set = (id, t) => { $(id).textContent = t; };
+    const pil = (id, cls, t) => { const el = $(id); el.className = 'pil ' + cls; el.textContent = t; };
+    const fat = prod !== null && preco !== null ? prod * preco : null;
+    const bm = fat !== null && mel !== null ? fat * mel / 100 : null;
+    const ba = bm !== null ? bm * 12 : null;
+    const pay = bm > 0 && inv > 0 ? inv / bm : null;
+    const res = ba !== null && inv !== null ? ba - inv : null;
+    const roi = res !== null && inv > 0 ? res / inv * 100 : null;
+
+    set('o-fat', fat !== null ? brl(fat) : '—');
+    set('o-tipo', fat !== null ? 'Fábrica de ' + tipo.toLowerCase() : '');
+    set('o-bm', bm !== null ? brl(bm) : '—');
+    set('o-ba', ba !== null ? brl(ba) : '—');
+    set('o-res', res !== null ? brl(res) : '—');
+    set('o-roi', roi !== null ? n1(roi) + '%' : '—');
+    if (pay !== null) {
+      set('o-pay', n1(pay) + (pay < 1.05 && pay >= 0.95 ? ' mês' : ' meses'));
+      pil('p-pay', pay <= 12 ? 'ok' : pay <= 24 ? 'warn' : 'no', pay <= 12 ? 'Retorno dentro do ano' : pay <= 24 ? 'Retorno entre 12 e 24 meses' : 'Retorno acima de 24 meses');
+    } else { set('o-pay', '—'); pil('p-pay', '', ''); }
+    if (roi !== null) pil('p-roi', roi > 0 ? 'ok' : 'no', roi > 0 ? 'Resultado positivo' : 'Resultado negativo'); else pil('p-roi', '', '');
+
+    const fr = $('frase');
+    if (pay !== null) {
+      fr.className = 'frase';
+      fr.textContent = 'Com uma melhoria de ' + new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 3 }).format(mel) + '%, o Programa Fábrica Blindada se paga em aproximadamente ' + n1(pay) + (pay < 1.05 && pay >= 0.95 ? ' mês.' : ' meses.');
+    } else {
+      fr.className = 'frase vazia';
+      fr.textContent = fat === null ? 'Informe a produção mensal e o preço médio por tonelada para calcular o payback.'
+        : !(inv > 0) ? 'Informe o investimento anual para calcular o payback.'
+        : 'Informe uma melhoria estimada maior que zero para calcular o payback.';
+    }
+  }
+  $('form').addEventListener('input', calc);
+  $('form').addEventListener('change', calc);
+  $('form').addEventListener('submit', e => e.preventDefault());
+  document.addEventListener('focusout', e => {
+    const el = e.target, f = fmtCampo[el.id]; if (!f) return;
+    const v = parse(el.value); if (v !== null) el.value = f(v);
+  });
+  $('limpar').addEventListener('click', () => {
+    $('prod').value = ''; $('preco').value = ''; $('melhoria').value = '0,2'; $('invest').value = '80.000';
+    $('tipo-racao').checked = true; calc(); $('prod').focus();
+  });
+  calc();
+})();
+</script>
+
+</body>
+</html>
